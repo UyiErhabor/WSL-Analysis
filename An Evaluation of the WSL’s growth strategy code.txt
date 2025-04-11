@@ -1,0 +1,420 @@
+# prompts to upload file titled 'match_results.csv'
+from google.colab import files
+upload_db = files.upload()
+
+
+# imports pandas
+import pandas as pd
+
+# reads file into python
+match_results = pd.read_csv('match_results.csv')
+
+# Checks for missing values
+print("Missing values summary:")
+print(match_results.isnull().sum())
+
+# checks rows with missing values
+print("\nRows with any missing values:")
+print(match_results.isnull().any())
+
+# prints number of observations per variable in dataset
+total_observations = len(match_results)
+print("Total number of attendance observations:", total_observations)
+
+# displays first five rows of file (unmodified)
+match_results.head()
+
+# Groups attendance by season_end_year
+season_attendance_counts = match_results.groupby('season_end_year')[['attendance']].count()
+
+# Print the season attendance counts
+print(season_attendance_counts)
+
+
+#1. How has the quality of the league changed over time?
+
+# Filters df and creates new df for data for matches that were played in 2020/2021, 2021/2022, 2022/2023, and 2023/2024 seasons.
+matches_played = pd.DataFrame()
+matches_played = match_results[(match_results['match_status'] == 'Played') &
+                               (match_results['season_end_year'].isin([2021, 2022, 2023, 2024]))].copy()
+
+
+# add total goals and total xg cols to df
+matches_played['total_goals'] = matches_played['home_goals'] + matches_played['away_goals']
+matches_played['total_xg'] = matches_played['home_xg'] + matches_played['away_xg']
+
+# calculates total goals per season and total xg per season
+total_goals_per_season = matches_played.groupby('season_end_year')['total_goals'].sum().reset_index().round(2)
+total_xg_per_season = matches_played.groupby('season_end_year')['total_xg'].sum().reset_index().round(2)
+
+average_goals_per_match = matches_played.groupby('season_end_year')['total_goals'].mean().reset_index().round(2)
+average_xg_per_match = matches_played.groupby('season_end_year')['total_xg'].mean().reset_index().round(2)
+
+print(total_goals_per_season)
+print(total_xg_per_season)
+print(average_goals_per_match)
+print(average_xg_per_match)
+
+
+
+# imports matplotlib library
+import matplotlib.pyplot as plt
+
+# Extract season end years
+season_end_years = total_goals_per_season['season_end_year']
+
+# sets dimensions of line graph
+plt.figure(figsize=(10, 6))
+
+# Plots total goals per season with dark blue color
+plt.plot(season_end_years, total_goals_per_season, marker='o', label='Total Goals per Season', color='darkblue')
+
+# Plots total xG per season with sky blue color
+plt.plot(season_end_years, total_xg_per_season, marker='o', label='Total xG per Season', color='skyblue')
+
+# Set y-axis limit to 0 to 800 (adjusted based on intial plots)
+plt.ylim(0,800)
+
+# Add labels and titles to line graph
+plt.xlabel('Season End Year')
+plt.ylabel('Total Goals per Season and Total xG per Season')
+plt.title('Total Goals per Season and Total xG per Season by Season End Year in WSL')
+
+# Create a dictionary to store unique labels and line objects
+legend_elements = {}
+
+# Plots total goals per season and adds it to the legend dictionary (dark blue)
+legend_elements["Total Goals per Season"] = plt.plot(season_end_years, total_goals_per_season, marker='o', color='darkblue', label='Total Goals per Season')[0]
+
+# Plots total xG per season and adds it to the legend dictionary (sky blue)
+legend_elements["Total xG per Season"] = plt.plot(season_end_years, total_xg_per_season, marker='o', color='skyblue', label='Total xG per Season')[0]
+
+# Use the legend_elements dictionary to create the legend
+plt.legend(legend_elements.values(), legend_elements.keys())
+
+# ensures line graph has a grid
+plt.grid(True)
+
+# Show values on lines
+for season, total_goal, total_xg in zip(season_end_years, total_goals_per_season['total_goals'], total_xg_per_season['total_xg']):
+  plt.text(season, total_goal, f'{total_goal:.2f}', ha='center', va='bottom')
+  plt.text(season, total_xg, f'{total_xg:.2f}', ha='center', va='bottom')
+
+# Ensure seasons are displayed as ticks on x-axis
+plt.xticks(season_end_years)
+
+# Adjusts layout to prevent clipping of plot elements
+plt.tight_layout()
+
+# Display line chart
+plt.show()
+
+
+
+# Extract season end years
+season_end_years = average_goals_per_match['season_end_year']
+
+# sets dimensions of line graph
+plt.figure(figsize=(10, 6))
+
+# Plots average goals per match with dark blue color
+plt.plot(season_end_years, average_goals_per_match, marker='o', label='Average Goals per Match', color='darkblue')
+
+# Plots average xG per match with sky blue color
+plt.plot(season_end_years, average_xg_per_match, marker='o', label='Average xG per Match', color='skyblue')
+
+# Set y-axis limit to a reasonable range based on your data (adjust as needed)
+plt.ylim(0, 5)
+
+# Add labels and titles to line graph
+plt.xlabel('Season End Year')
+plt.ylabel('Average Goals per Match and Average xG per Match')
+plt.title('Average Goals per Match and Average xG per Match by Season End Year in WSL')
+
+# Create a dictionary to store unique labels and line objects
+legend_elements = {}
+
+# Plots average goals per match and adds it to the legend dictionary (dark blue)
+legend_elements["Average Goals per Match"] = plt.plot(season_end_years, average_goals_per_match, marker='o', color='darkblue', label='Average Goals per Match')[0]
+
+# Plots average xG per match and adds it to the legend dictionary (sky blue)
+legend_elements["Average xG per Match"] = plt.plot(season_end_years, average_xg_per_match, marker='o', color='skyblue', label='Average xG per Match')[0]
+
+# Use the legend_elements dictionary to create the legend
+plt.legend(legend_elements.values(), legend_elements.keys())
+
+# Ensures line graph has a grid
+plt.grid(True)
+
+# Show values on lines
+for season, avg_goal, avg_xg in zip(season_end_years, average_goals_per_match['total_goals'], average_xg_per_match['total_xg']):
+  plt.text(season, avg_goal + 0.1, f'{avg_goal:.2f}', ha='center', va='bottom')  # Adjust y-offset slightly
+  plt.text(season, avg_xg + 0.1, f'{avg_xg:.2f}', ha='center', va='bottom')  # Adjust y-offset slightly
+
+# Ensure seasons are displayed as ticks on x-axis
+plt.xticks(season_end_years)
+
+# Adjusts layout to prevent clipping of plot elements
+plt.tight_layout()
+
+# Display line chart
+plt.show()
+
+
+
+#2. How has the competitive balance of the league changed over time?
+
+# creates match_outcome column
+matches_played['match_outcome'] = ''
+
+# Loops through DataFrame to determine match outcomes
+for index, match in matches_played.iterrows():
+    home_goals = match['home_goals']
+    away_goals = match['away_goals']
+
+    if home_goals > away_goals:
+        matches_played.at[index, 'match_outcome'] = 'Home Win'
+    elif home_goals < away_goals:
+        matches_played.at[index, 'match_outcome'] = 'Away Win'
+    else:
+        matches_played.at[index, 'match_outcome'] = 'Draw'
+
+# Verifys that match outcomes have been determined correcty
+print(matches_played[['home_goals', 'away_goals', 'match_outcome']].head())
+
+
+
+# Assigns points to each team
+
+# Creates columns to store points
+matches_played['home_points'] = 0
+matches_played['away_points'] = 0
+
+# Loops through each row and assigns points based on the match outcome
+for index, row in matches_played.iterrows():
+    if row['match_outcome'] == 'Home Win':
+        matches_played.at[index, 'home_points'] = 3
+        matches_played.at[index, 'away_points'] = 0
+    elif row['match_outcome'] == 'Away Win':
+        matches_played.at[index, 'home_points'] = 0
+        matches_played.at[index, 'away_points'] = 3
+    elif row['match_outcome'] == 'Draw':
+        matches_played.at[index, 'home_points'] = 1
+        matches_played.at[index, 'away_points'] = 1
+
+# Displays the first few records to check points have been assigned correctly 
+print(matches_played[['home_team', 'away_team', 'home_goals', 'away_goals', 'match_outcome', 'home_points', 'away_points']].head())
+
+# Calculate home and away points for each team per season
+home_points = matches_played.groupby(['season_end_year', 'home_team'])['home_points'].sum().reset_index()
+away_points = matches_played.groupby(['season_end_year', 'away_team'])['away_points'].sum().reset_index()
+
+
+
+# Aggregates points for each team
+
+# Renames columns for merging
+home_points.columns = ['season_end_year', 'team', 'points']
+away_points.columns = ['season_end_year', 'team', 'points']
+
+# Combines home and away points
+total_points = pd.concat([home_points, away_points])
+
+# Aggregate total points by team per season
+total_points = total_points.groupby(['season_end_year', 'team'])['points'].sum().reset_index()
+
+# Verifys total points are correctly recorded
+
+# Filter for Arsenal's home points in the 2021 season
+arsenal_home_points_2021 = home_points[(home_points['season_end_year'] == 2021) & (home_points['team'] == 'Arsenal')]
+
+# Filter for Arsenal's away points in the 2021 season
+arsenal_away_points_2021 = away_points[(away_points['season_end_year'] == 2021) & (away_points['team'] == 'Arsenal')]
+
+# Display the home and away points of Arsenal in 2021
+print('Arsenal Home Points 2021:')
+print(arsenal_home_points_2021)
+
+print('Arsenal Away Points 2021:')
+print(arsenal_away_points_2021)
+
+# Verify total points calculation
+arsenal_total_points_2021 = total_points[(total_points['season_end_year'] == 2021) & (total_points['team'] == 'Arsenal')]
+
+print('Arsenal Total Points 2021:')
+print(arsenal_total_points_2021)
+
+
+
+# Calculates standard deviation of points
+
+
+# groups standard deviation of points totals accrued by season
+points_totals_sd_per_season = total_points.groupby(['season_end_year'])['points'].std().reset_index().round(2)
+points_totals_sd_per_season.columns = ['season_end_year','std_dev_points']
+
+# Display sd of points totals accrued for each season
+print(points_totals_sd_per_season)
+
+
+# Create the plot
+plt.figure(figsize=(8, 6))
+plt.bar(points_totals_sd_per_season['season_end_year'], points_totals_sd_per_season['std_dev_points'], color='skyblue')
+
+# Creates Labels and title for plot
+plt.xlabel('Season End Year')
+plt.ylabel('Standard Deviation of Points Totals Accrued')
+plt.title('Variability of Points Totals Accrued per Season in WSL')
+
+# Creates Gridlines
+plt.grid(axis='y')  # Gridlines only on y-axis for bar chart
+
+# Display season years on x-axis ticks
+plt.xticks(points_totals_sd_per_season['season_end_year'].astype(int))
+
+# Add data point labels above bars
+for x, y in zip(points_totals_sd_per_season['season_end_year'], points_totals_sd_per_season['std_dev_points']):
+  plt.text(x, y + 0.1, f'{y:.2f}', ha='center', va='bottom')  # Adjust y position slightly above bar
+
+# displays bar graph
+plt.show()
+
+
+
+#3. What are the key drivers of attendances in the league?
+
+
+# imports libraries needed for tests of OLS regression assumptions
+import seaborn as sns
+import matplotlib.pyplot as plt
+from statsmodels.stats.outliers_influence import variance_inflation_factor
+import statsmodels.api as sm
+
+
+
+# Creates regression df
+regression_df = matches_played.copy()
+
+# creates weekday, weekend, afternoon and evening dummy variables
+regression_df['weekday'] = 0
+regression_df['weekend'] = 0
+
+for index, match in regression_df.iterrows():
+    day_of_week = match['day_of_week']
+
+    if day_of_week == 'Sat' or day_of_week == 'Sun':
+      regression_df.at[index, 'weekday'] = 0
+    else:
+      regression_df.at[index, 'weekend'] = 1
+
+regression_df['afternoon'] = 0
+regression_df['evening'] = 0
+
+for index, match in regression_df.iterrows():
+    match_time = match['match_time']
+    if match_time < '17:00':
+      regression_df.at[index, 'afternoon'] = 1
+    else:
+      regression_df.at[index, 'evening'] = 1
+
+
+
+# Drop rows with missing values from df to run regression
+regression_df = regression_df.dropna()
+
+# Fits OLS regression model
+X = regression_df[['total_goals', 'total_xg', 'weekday','weekend','evening','afternoon','home_points', 'away_points']]
+y = regression_df['attendance']
+X = sm.add_constant(X)
+ols_model = sm.OLS(y, X).fit()
+
+
+
+
+# tests whether OLS regression assumptions have been met
+
+# 1. Linearity: Check scatterplots
+sns.pairplot(data=regression_df, y_vars=['attendance'], x_vars=['total_goals', 'total_xg', 'weekday','weekend','evening','afternoon','home_points', 'away_points'])
+plt.show()
+
+# 2. Independence of residuals: Plot residuals vs. fitted values
+residuals = ols_model.resid
+fitted_values = ols_model.fittedvalues
+plt.scatter(fitted_values, residuals)
+plt.xlabel('Fitted values')
+plt.ylabel('Residuals')
+plt.title('Residuals vs. Fitted Values')
+plt.axhline(y=0, color='r', linestyle='-')
+plt.show()
+
+# 3. Homoscedasticity: Plot residuals vs. fitted values (already done above)
+
+# 4. Normality of residuals: Check Q-Q plot
+sm.qqplot(residuals, line='s')
+plt.title('Q-Q Plot of Residuals')
+plt.show()
+
+# 5. Multicollinearity: Calculate & Check VIF values
+
+# if VIF value <= 5: Likely no multicollinearity issues
+# if VIF < 10: may indicate moderate multicollinearity,
+# if VIF >= 10: Suggests significant multicollinearity
+
+vif_data = X.drop(columns=['const'])
+vif = pd.DataFrame()
+vif["Variable"] = vif_data.columns
+vif["VIF"] = [variance_inflation_factor(vif_data.values, i) for i in range(vif_data.shape[1])]
+print(vif)
+
+# OLS regression assumptions not fully met, so not approproate to reveal key attendance drivers. Random Forest Regression will be used as it
+# deals with some of issues raised from tests of regression assumptions including multicollinearity and non-linear relationships between dependent and independent
+# variables
+
+
+
+# imports functions from libraries needed for Random Forest Regression
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
+
+# Defines independent and dependent variables
+X = regression_df[['total_goals', 'total_xg','weekday','weekend','evening','afternoon']]
+y = regression_df['attendance']
+
+# Split data into training and testing data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Initialises Random Forest regressor
+rf_regressor = RandomForestRegressor(n_estimators=100, random_state=42)
+
+# Fits the model
+rf_regressor.fit(X_train, y_train)
+
+# Predicts using the test data
+y_pred = rf_regressor.predict(X_test)
+
+# extracts feature importance scores
+feature_importance = rf_regressor.feature_importances_
+
+# Create a df for the feature importances
+importance_df = pd.DataFrame({
+    'Feature': X.columns,
+    'Importance': feature_importance
+})
+
+# Plot the feature importance scores
+plt.figure(figsize=(10, 6))
+barplot = sns.barplot(x='Importance', y='Feature', data=importance_df.sort_values(by='Importance', ascending=False))
+plt.title('Relative Importance of Drivers of Attendances in WSL')
+plt.xlabel('Importance Score')
+plt.ylabel('Driver')
+
+# Add values on top of the bars
+for index, value in enumerate(importance_df.sort_values(by='Importance', ascending=False)['Importance']):
+    barplot.text(value, index, f'{value:.2f}', color='black', ha="left", va="center")
+
+# Save the plot as a PNG file
+plt.savefig('feature_importance.png', bbox_inches='tight')
+
+# displays plot
+plt.show()
