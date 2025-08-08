@@ -2,4 +2,4 @@
 
 Unauthorised copying, reproduction, modification, or distribution of this code or any part of this repository is prohibited.
 
-This work is protected by applicable intellectual property laws.y.
+This work is protected by applicable intellectual property laws.
