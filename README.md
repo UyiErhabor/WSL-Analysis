@@ -1,5 +1,3 @@
-© 2024 Uyi Erhabor. All rights reserved.
-
-Unauthorised copying, reproduction, modification, or distribution of this code or any part of this repository is prohibited.
-
-This work is protected by applicable intellectual property laws.
+Every download of this work is naturally detected in real time by a proprietary tracking system, including the location, network, and other identifying details of the downloader.
+© 2024 Uyi Erhabor — All Rights Reserved.
+Any unauthorized use, copying, modification, or distribution will be detected and pursued to the fullest extent of the law
